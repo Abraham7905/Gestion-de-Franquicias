@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  db:
+    image: mariadb:latest
+    container_name: franquicias_db_container
+    restart: always
+    environment:
+      MARIADB_ROOT_PASSWORD: 790531301500
+      MARIADB_DATABASE: franquicias_db
+    ports:
+      - "3307:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    container_name: franquicias_app_container
+    restart: always
+    ports:
+      - "8088:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/franquicias_db?useSSL=false&serverTimezone=UTC
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=790531301500
+      - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.MariaDBDialect
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  db_data:
